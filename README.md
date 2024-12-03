@@ -207,8 +207,8 @@ For example, to generate the full-length video (20s@12fps) as the highest resolu
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True torchrun --standalone --nproc_per_node 8 \
     scripts/inference_magicdrive.py \
     configs/magicdrive/inference/fullx848x1600_stdit3_CogVAE_boxTDS_wCT_xCE_wSST.py \
-    --cfg-options model.from_pretrained=\
-    num_frames=full validation_index="[53,]" cpu_offload=true scheduler.type=rflow-slice
+    --cfg-options model.from_pretrained=${TODO} \
+    num_frames=full cpu_offload=true scheduler.type=rflow-slice
 ```
 
 <details>
