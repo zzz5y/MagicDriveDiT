@@ -1,6 +1,6 @@
 ### Q1: Why is PyTorch 2.4 recommended?
 
-Because the minimum version required to resolve [pytorch/pytorch#123510](https://github.com/pytorch/pytorch/issues/123510) is 2.4. If you do not care about it, lower version may also work.
+Because the minimum version required to resolve [pytorch/pytorch#123510](https://github.com/pytorch/pytorch/issues/123510) is 2.4. If you do not care about it, lower versions may also work.
 
 ### Q2: Got nan with 64 GPU nodes.
 
@@ -10,11 +10,11 @@ I noticed [hpcaitech/ColossalAI#6091](https://github.com/hpcaitech/ColossalAI/is
 
 I will try my best to update the following form (TODO):
 
-|                 |            | no sp | sp=2 | sp=4 | sp=8 |
-|-----------------|------------|-------|------|------|------|
-| 224$\times$400  | 9 frame    |       |      |      |      |
-|                 | full frame |       |      |      |      |
-| 424$\times$800  | 9 frame    |       |      |      |      |
-|                 | full frame |       |      |      |      |
-| 848$\times$1600 | 9 frame    |       |      |      |      |
-|                 | full frame | OOM   | OOM  | >90G | >70G |
+|   Resolution           |  Frames    | no sp | sp=2 | sp=4 | sp=8 |
+|------------------------|------------|-------|------|------|------|
+| $224\times400\times6$  | 9 frame    |       |      |      |      |
+|                        | full frame |       |      |      |      |
+| $424\times800\times6$  | 9 frame    |       |      |      |      |
+|                        | full frame |       |      |      |      |
+| $848\times1600\times6$ | 9 frame    |       |      |      |      |
+|                        | full frame | OOM   | OOM  | >90G | >70G |
