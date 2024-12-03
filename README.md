@@ -27,7 +27,7 @@ The rapid advancement of diffusion models has greatly improved video synthesis, 
 ## TODO
 
 - [x] train & inference code
-- [ ] pretrained weight & meta data for nuScenes
+- [ ] pretrained weight & metadata for nuScenes
 
 ## Getting Started
 
@@ -41,11 +41,13 @@ git clone --recursive https://github.com/flymin/MagicDriveDiT.git
 
 The code is tested on **A800/H20/Ascend 910b** servers. To setup the python environment, follow:
 
-<details>
-<summary><b>NVIDIA Servers</b></summary>
-Step-by-step guide:
+> [!NOTE]  
+> Please use `pip` to set up your environment. We DO NOT recommend using `conda`+`yaml` directly for environment configuration.
 
-1. Make sure you have environment with the following packages:
+<details>
+<summary><b>NVIDIA Servers</b> step-by-step guide:</summary>
+
+1. Make sure you have an environment with the following packages:
     ```bash
     torch==2.4.0
     torchvision==0.19.0
@@ -53,7 +55,7 @@ Step-by-step guide:
     # may need to build from source
     apex (https://github.com/NVIDIA/apex)
     
-    # choose the correct wheel packages or build from source
+    # choose the correct wheel packages or build from the source
     xformers>=0.0.27
     flash-attn>=2.6.3
     ```
@@ -75,10 +77,9 @@ Please refer to the following yaml files for further details:
 - H20: `requirements/h20_cu124.yaml`
 
 <details>
-<summary><b>Ascend Servers</b></summary>
-Step-by-step guide:
+<summary><b>Ascend Servers</b> step-by-step guide:</summary>
 
-1. Make sure you have environment with the following packages (please refer to [this page](https://www.hiascend.com/document/detail/zh/Pytorch/60RC2/configandinstg/instg/insg_0003.html?sub_id=%2Fzh%2FPytorch%2F60RC2%2Fconfigandinstg%2Finstg%2Finsg_0008.html) to setup pytorch env):
+1. Make sure you have an environment with the following packages (please refer to [this page](https://www.hiascend.com/document/detail/zh/Pytorch/60RC2/configandinstg/instg/insg_0003.html?sub_id=%2Fzh%2FPytorch%2F60RC2%2Fconfigandinstg%2Finstg%2Finsg_0008.html) to setup pytorch env):
     ```bash
     # based on CANN 8.0RC2
     torch==2.3.1
@@ -86,7 +87,7 @@ Step-by-step guide:
     torch-npu==2.3.1
     apex (https://gitee.com/ascend/apex)
 
-    # choose the correct wheel packages or build from source
+    # choose the correct wheel packages or build from the source
     xformers==0.0.27
     ```
 2. Install Colossalai
@@ -140,7 +141,7 @@ We prepare the nuScenes dataset similar to [bevfusion's instructions](https://gi
     └── v1.0-trainval
     ```
     
-2. Download the meta data for `mmdet` from TODO. 
+2. Download the metadata for `mmdet` from TODO. 
 
     <details><summary><b>Otherwise</b></summary>
     
