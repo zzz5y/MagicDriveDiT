@@ -6,7 +6,7 @@ This repository contains the implementation of the paper
 
 > MagicDriveDiT: High-Resolution Long Video Generation for Autonomous Driving with Adaptive Control <br>
 > [Ruiyuan Gao](https://gaoruiyuan.com/)<sup>1</sup>, [Kai Chen](https://kaichen1998.github.io/)<sup>2</sup>, [Bo Xiao](https://www.linkedin.com/in/bo-xiao-19909955/?originalSubdomain=ie)<sup>3</sup>, [Lanqing Hong](https://scholar.google.com.sg/citations?user=2p7x6OUAAAAJ&hl=en)<sup>4</sup>, [Zhenguo Li](https://scholar.google.com/citations?user=XboZC1AAAAAJ&hl=en)<sup>4</sup>, [Qiang Xu](https://cure-lab.github.io/)<sup>1</sup><br>
-> <sup>1</sup>CUHK <sup>2</sup>HKUST <sup>3</sup>Huawei Cloud <sup>4</sup>Huawei Noah's Ark Lab <be>
+> <sup>1</sup>CUHK <sup>2</sup>HKUST <sup>3</sup>Huawei Cloud <sup>4</sup>Huawei Noah's Ark Lab <br>
 
 https://github.com/user-attachments/assets/f43812ea-087b-4b70-883b-1e2f1c0df8d7
 
@@ -27,16 +27,17 @@ The rapid advancement of diffusion models has greatly improved video synthesis, 
 ## TODO
 
 - [x] train & inference code
-- [ ] pretrained weight & metadata for nuScenes
+- [ ] pretrained weight for stage 3 & metadata for nuScenes (soon)
+- [ ] pretrained weight for stage 1 & 2 (will be released a bit later)
 
 ## Getting Started
 
 ### Environment Setup
 
-Clone this repo with submodules
+Clone this repo
 
 ```bash
-git clone --recursive https://github.com/flymin/MagicDriveDiT.git
+git clone https://github.com/flymin/MagicDriveDiT.git
 ```
 
 The code is tested on **A800/H20/Ascend 910b** servers. To setup the python environment, follow:
@@ -92,7 +93,7 @@ Please refer to the following yaml files for further details:
     ```
 2. Install Colossalai
     ```bash
-    # I remove dependency on `bitsandbytes`.
+    # We remove dependency on `bitsandbytes`.
     git clone https://github.com/flymin/ColossalAI.git
     git checkout ascend && git pull
     cd ColossalAI
@@ -191,7 +192,7 @@ We prepare the nuScenes dataset similar to [bevfusion's instructions](https://gi
 ### Inference the model for Generation
 
 ```bash
-# ${GPUS} can be 1/4/8 for sequence parallel.
+# ${GPUS} can be 1/2/4/8 for sequence parallel.
 # ${CFG} can be any file located in `configs/magicdrive/inference/`.
 # ${PATH_TO_MODEL} can be path to `ema.pt` or path to `model` from the checkpoint.
 # ${FRAME} can be 1/9/17/33/65/129/full...(8n+1). 1 for image; full for the full-length of nuScenes.
@@ -201,6 +202,8 @@ torchrun --standalone --nproc_per_node ${GPUS} scripts/inference_magicdrive.py $
     --cfg-options model.from_pretrained=${PATH_TO_MODEL} num_frames=${FRAME} \
     cpu_offload=true scheduler.type=rflow-slice
 ```
+
+Please check [FAQ](https://github.com/flymin/MagicDriveDiT/blob/flymin-dev/doc/FAQ.md#q21-minimum-gpu-memory-requirements-for-inference) for more information about GPU memory requirements.
 
 For example, to generate the full-length video (20s@12fps) as the highest resolution (848x1600), with 8*H20/A800:
 
