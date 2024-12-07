@@ -21,14 +21,15 @@ The rapid advancement of diffusion models has greatly improved video synthesis, 
 
 ## News
 
-- [2024/12/03] Train & inference code Release! We will update links in readme later.
+- [2024/12/07] Stage-3 checkpoint and nuScenes metadata for training & inference release!
+- [2024/12/03] Train & inference code release! We will update links in readme later.
 - [2024/11/22] Paper and project page released! Check https://gaoruiyuan.com/magicdrivedit/
 
 ## TODO
 
 - [x] train & inference code
-- [ ] pretrained weight for stage 3 & metadata for nuScenes (soon)
-- [ ] pretrained weight for stage 1 & 2 (will be released a bit later)
+- [x] pretrained weight for stage 3 & metadata for nuScenes
+- [ ] pretrained weight for stage 1 & 2 (will be released later)
 
 ## Getting Started
 
@@ -109,9 +110,9 @@ Please refer to `requirements/910b_cann8.0.RC2_aarch64.yaml` for further details
 
 ### Pretrained Weights
 
-**VAE**: [THUDM/CogVideoX-2b](https://huggingface.co/THUDM/CogVideoX-2b). It is OK if you only download the `vae` sub-folder.
+**VAE**: We use the 3DVAE from [THUDM/CogVideoX-2b](https://huggingface.co/THUDM/CogVideoX-2b). It is OK if you only download the `vae` sub-folder.
 
-**T5**: [google/t5-v1_1-xxl](https://huggingface.co/google/t5-v1_1-xxl).
+**Text Encoder**: We use T5 Encoder from [google/t5-v1_1-xxl](https://huggingface.co/google/t5-v1_1-xxl).
 
 You should organize them as follows:
 
@@ -124,7 +125,12 @@ ${CODE_ROOT}/pretrained/
 
 **MagicDriveDiT**
 
-TODO
+Please download the stage-3 checkpoint from [flymin/MagicDriveDiT-stage3-40k-ft](https://huggingface.co/flymin/MagicDriveDiT-stage3-40k-ft) and put it in `${CODE_ROOT}/ckpts/` as:
+
+```bash
+${CODE_ROOT}/ckpts/
+└── MagicDriveDiT-stage3-40k-ft
+```
 
 ### Prepare Data
 
@@ -142,7 +148,7 @@ We prepare the nuScenes dataset similar to [bevfusion's instructions](https://gi
     └── v1.0-trainval
     ```
     
-2. Download the metadata for `mmdet` from TODO. 
+2. Download the metadata for `mmdet` from [flymin/MagicDriveDiT-nuScenes-metadata](https://huggingface.co/datasets/flymin/MagicDriveDiT-nuScenes-metadata). 
 
     <details><summary><b>Otherwise</b></summary>
     
@@ -211,7 +217,7 @@ For example, to generate the full-length video (20s@12fps) as the highest resolu
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True torchrun --standalone --nproc_per_node 8 \
     scripts/inference_magicdrive.py \
     configs/magicdrive/inference/fullx848x1600_stdit3_CogVAE_boxTDS_wCT_xCE_wSST.py \
-    --cfg-options model.from_pretrained=${TODO} \
+    --cfg-options model.from_pretrained=./ckpts/MagicDriveDiT-stage3-40k-ft/ema.pt \
     num_frames=full cpu_offload=true scheduler.type=rflow-slice
 ```
 
