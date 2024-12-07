@@ -302,7 +302,7 @@ report_every = ckpt_every
 # optimization settings
 load = None
 grad_clip = 1.0
-lr = 1e-5
+lr = 8e-5
 ema_decay = 0.99
 adam_eps = 1e-15
 weight_decay = 1e-2
