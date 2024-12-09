@@ -123,7 +123,7 @@ ${CODE_ROOT}/pretrained/
 └── t5-v1_1-xxl
 ```
 
-**MagicDriveDiT**
+### MagicDriveDiT Checkpoints
 
 Please download the stage-3 checkpoint from [flymin/MagicDriveDiT-stage3-40k-ft](https://huggingface.co/flymin/MagicDriveDiT-stage3-40k-ft) and put it in `${CODE_ROOT}/ckpts/` as:
 
