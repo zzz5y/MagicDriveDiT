@@ -1,6 +1,6 @@
 # MagicDriveDiT
 
-[![arXiv](https://img.shields.io/badge/ArXiv-2411.13807-b31b1b.svg?style=plastic)](https://arxiv.org/abs/2411.13807) [![web](https://img.shields.io/badge/Web-MagicDriveDiT-blue.svg?style=plastic)](https://gaoruiyuan.com/magicdrivedit/) [![license](https://img.shields.io/github/license/flymin/MagicDriveDiT?style=plastic)](https://github.com/flymin/MagicDriveDiT/blob/main/LICENSE) [![star](https://img.shields.io/github/stars/flymin/MagicDriveDiT)](https://github.com/flymin/MagicDriveDiT)
+[![arXiv](https://img.shields.io/badge/ArXiv-2411.13807-b31b1b.svg?style=plastic)](https://arxiv.org/abs/2411.13807) [![web](https://img.shields.io/badge/Web-MagicDriveDiT-blue.svg?style=plastic)](https://gaoruiyuan.com/magicdrivedit/) [![license](https://img.shields.io/github/license/flymin/MagicDriveDiT?style=plastic)](https://github.com/flymin/MagicDriveDiT/blob/main/LICENSE) [![star](https://img.shields.io/github/stars/flymin/MagicDriveDiT)](https://github.com/flymin/MagicDriveDiT) [![Paper](https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-sm.svg)](https://huggingface.co/papers/2411.13807) [![Model](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-sm.svg)](https://huggingface.co/flymin/MagicDriveDiT-stage3-40k-ft) [![Dataset](https://huggingface.co/datasets/huggingface/badges/resolve/main/dataset-on-hf-sm.svg)](https://huggingface.co/datasets/flymin/MagicDriveDiT-nuScenes-metadata)
 
 This repository contains the implementation of the paper 
 
