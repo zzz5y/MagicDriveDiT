@@ -137,6 +137,11 @@ def main():
         for d in cfg.dataset.cfg:
             d[1].img_collate_param.is_train = False  # Important!
     cfg.batch_size = 1
+    # for lower cpu memory in dataloading
+    cfg.ignore_ori_imgs = cfg.get("ignore_ori_imgs", False)
+    if cfg.ignore_ori_imgs:
+        cfg.dataset.drop_ori_imgs = True
+    # post transformation
     cfg.use_back_trans = cfg.get("use_back_trans", True)
     cfg.save_mode = cfg.get("save_mode", "single-view")
     assert cfg.save_mode in ["single-view", "all-in-one", "image_filename"]
@@ -258,6 +263,7 @@ def main():
 
     # == prepare video size ==
     if cfg.use_back_trans:
+        # FIXME: we should have permuted (0, 1) here, but we did not do it.
         back_trans = TF.Compose([
             TF.Resize(cfg.post.resize, interpolation=TF.InterpolationMode.BICUBIC),
             TF.Pad(cfg.post.padding),
@@ -301,9 +307,7 @@ def main():
     batch_size = cfg.get("batch_size", 1)
     num_sample = cfg.get("num_sample", 1)
 
-    save_gen_dir = os.path.join(cfg.save_dir, "gen_frames")
     save_video_dir = os.path.join(cfg.save_dir, "gen_video")
-    save_gt_dir = os.path.join(cfg.save_dir, "gt_frames")
     save_gt_video_dir = os.path.join(cfg.save_dir, "gt_video")
 
     # == Iter over all samples ==
@@ -325,8 +329,13 @@ def main():
     ) as pbar:
         for i, batch in pbar:
             this_token: str = batch['meta_data']['metas'][0][0].data['token']
-            B, T, NC = batch["pixel_values"].shape[:3]
-            latent_size = vae.get_latent_size((T, *batch["pixel_values"].shape[-2:]))
+            if cfg.ignore_ori_imgs:
+                B, T, NC = 1, *batch["pixel_values_shape"][0].tolist()[:2]
+                latent_size = vae.get_latent_size(
+                    (T, *batch["pixel_values_shape"][0].tolist()[-2:]))
+            else:
+                B, T, NC = batch["pixel_values"].shape[:3]
+                latent_size = vae.get_latent_size((T, *batch["pixel_values"].shape[-2:]))
 
             # == prepare batch prompts ==
             y = batch.pop("captions")[0]  # B, just take first frame
@@ -364,6 +373,18 @@ def main():
             _fpss = gather_tensors(model_args['fps'], pg=get_data_parallel_group())
             _tokens = [[bytes(_t).decode("utf8") for _t in _tk] for _tk in gather_tensors(
                 torch.ByteTensor([bytes(this_token, 'utf8')]).to(device=device))]
+            if cfg.save_mode == "image_filename":
+                gen_length = cut_length if cut_length is not None else T
+                # assume bs=1!
+                _filenames = [
+                    deserialize_state(_meta)
+                    for _meta in gather_tensors(
+                        serialize_state(
+                            [batch['meta_data']['metas'][i][0].data['filename'] for i in range(gen_length)]
+                        ).cuda(),
+                        pg=get_data_parallel_group(),
+                    )
+                ]
             for ns in range(num_sample):
                 z = torch.randn(
                     len(y), vae.out_channels * NC, *latent_size, generator=generator,
@@ -423,17 +444,6 @@ def main():
                 # gather sample from all processes
                 coordinator.block_all()
                 _samples = gather_tensors(samples, pg=get_data_parallel_group())
-                if cfg.save_mode == "image_filename":
-                    # assume bs=1!
-                    _filenames = [
-                        deserialize_state(_meta) 
-                        for _meta in gather_tensors(
-                            serialize_state(
-                                batch['meta_data']['metas'][0][0].data['filename']
-                            ).cuda(),
-                            pg=get_data_parallel_group(),
-                        )
-                    ]
 
                 # == save samples, one-time-generation only ==
                 if coordinator.is_master():
@@ -474,21 +484,29 @@ def main():
                         elif cfg.save_mode == "image_filename":
                             # save image with their original name
                             for v_idx, (view, video) in enumerate(zip(VIEW_ORDER, videos)):
-                                _basename = os.path.basename(_filenames[idx][v_idx])
-                                _basename = os.path.splitext(_basename)[0]
-                                save_path = os.path.join(
-                                    save_video_dir, view,
-                                    f"{_basename}_gen{ns}.jpg",
-                                )
-                                make_file_dirs(save_path)
-                                save_path = save_sample(
-                                    back_trans(video),
-                                    fps=save_fps if save_fps else fpss[idx],
-                                    save_path=save_path,
-                                    verbose=verbose >= 2,
-                                    with_postfix=False,
-                                )
+                                # video: C, T, H, W
+                                assert video.shape[1] == len(_filenames[idx])
+                                for _t in range(video.shape[1]):
+                                    _basename = os.path.basename(_filenames[idx][_t][v_idx])
+                                    _basename = os.path.splitext(_basename)[0]
+                                    save_path = os.path.join(
+                                        save_video_dir, view,
+                                        f"{_basename}_gen{ns}.jpg",
+                                    )
+                                    make_file_dirs(save_path)
+                                    save_path = save_sample(
+                                        back_trans(video[:, _t:_t+1]),  # take single frame
+                                        fps=save_fps if save_fps else fpss[idx],
+                                        save_path=save_path,
+                                        verbose=verbose >= 2,
+                                        with_postfix=False,
+                                    )
                 coordinator.block_all()
+
+            total_num += len(y)
+            if cfg.ignore_ori_imgs or cfg.get("skip_save_original", False):
+                coordinator.block_all()
+                continue
 
             # == save_gt ==
             x = batch.pop("pixel_values").to(device, dtype)
@@ -506,35 +524,33 @@ def main():
                     fpss += [int(_fps) for _fps in fps]
                     tokens += [_tk for _tk in token]
                 # save
-                if not cfg.get("skip_save_original", False):
-                    for idx, sample in enumerate(samples):  # NC, C, T ...
-                        if cfg.save_mode == "single-view":
-                            for view, video in zip(VIEW_ORDER, sample):
-                                save_path = os.path.join(
-                                    save_gt_video_dir, f"{tokens[idx]}",
-                                    f"{tokens[idx]}_{view}")
-                                make_file_dirs(save_path)
-                                save_path = save_sample(
-                                    back_trans(video),
-                                    fps=save_fps if save_fps else fpss[idx],
-                                    save_path=save_path,
-                                    high_quality=True,
-                                    verbose=verbose >= 2,
-                                    with_postfix=False,
-                                )
-                        elif cfg.save_mode == "all-in-one":
-                            vid_sample = concat_6_views_pt(sample, oneline=False)
+                for idx, sample in enumerate(samples):  # NC, C, T ...
+                    if cfg.save_mode == "single-view":
+                        for view, video in zip(VIEW_ORDER, sample):
                             save_path = os.path.join(
-                                save_gt_video_dir, f"{tokens[idx]}")
+                                save_gt_video_dir, f"{tokens[idx]}",
+                                f"{tokens[idx]}_{view}")
                             make_file_dirs(save_path)
                             save_path = save_sample(
-                                back_trans(vid_sample),
+                                back_trans(video),
                                 fps=save_fps if save_fps else fpss[idx],
                                 save_path=save_path,
                                 high_quality=True,
                                 verbose=verbose >= 2,
+                                with_postfix=False,
                             )
-                total_num += len(samples)
+                    elif cfg.save_mode == "all-in-one":
+                        vid_sample = concat_6_views_pt(sample, oneline=False)
+                        save_path = os.path.join(
+                            save_gt_video_dir, f"{tokens[idx]}")
+                        make_file_dirs(save_path)
+                        save_path = save_sample(
+                            back_trans(vid_sample),
+                            fps=save_fps if save_fps else fpss[idx],
+                            save_path=save_path,
+                            high_quality=True,
+                            verbose=verbose >= 2,
+                        )
             coordinator.block_all()
     logger.info("Inference finished.")
     logger.info("Saved %s samples to %s", total_num, cfg.save_dir)

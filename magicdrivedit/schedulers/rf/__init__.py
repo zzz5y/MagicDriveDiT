@@ -179,7 +179,8 @@ class RFLOW_SLICE(RFLOW):
 
             # 1. all cond
             _model_args = {k:v for k, v in model_args.items()}
-            _model_args["x_mask"] = mask_t_upper
+            if mask is not None:
+                _model_args["x_mask"] = mask_t_upper
 
             pred = model(z, t, **_model_args)
             if pred.shape[1] == z.shape[1] * 2:
@@ -193,7 +194,8 @@ class RFLOW_SLICE(RFLOW):
                 model_args, model.camera_embedder.uncond_cam.to(device),
                 model.frame_embedder.uncond_cam.to(device), y_null,
                 ["y", "bbox", "cams", "rel_pos", "maps"], append=False)
-            _model_args["x_mask"] = mask_t_upper
+            if mask is not None:
+                _model_args["x_mask"] = mask_t_upper
             pred = model(z, t, **_model_args)
             if pred.shape[1] == z.shape[1] * 2:
                 pred = pred.chunk(2, dim=1)[0]
