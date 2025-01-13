@@ -223,12 +223,14 @@ PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True torchrun --standalone --nproc_p
 
 <details>
 <summary>Other options for generation:</summary>
-- `force_daytime`: (bool) force to generate daytime scenes.
-- `force_rainy`: (bool) force to generate rainy scenes.
-- `force_night`: (bool) force to generate night scenes.
-- `allow_class`: (list) limit the classes for generation.
-- `del_box_ratio`: (float) randomly drop boxes for generation.
-- `drop_nearest_car`: (int) drop N-nearest vehicles during generation.
+<ul>
+<li> <code>force_daytime</code>: (bool) force to generate daytime scenes. </li>
+<li> <code>force_rainy</code>: (bool) force to generate rainy scenes. </li>
+<li> <code>force_night</code>: (bool) force to generate night scenes. </li>
+<li> <code>allow_class</code>: (list) limit the classes for generation. </li>
+<li> <code>del_box_ratio</code>: (float) randomly drop boxes for generation. </li>
+<li> <code>drop_nearest_car</code>: (int) drop N-nearest vehicles during generation. </li>
+</ul>
 
 </details>
 
