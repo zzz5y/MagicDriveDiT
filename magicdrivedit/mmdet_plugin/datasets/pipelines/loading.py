@@ -59,7 +59,22 @@ class LoadMultiViewImageFromFiles:
         images = []
         h, w = 0, 0
         for name in filename:
-            images.append(Image.open(name))
+            
+        # 获取当前工作目录
+            cwd = os.getcwd()
+            #print("Current working directory:", cwd)
+            
+            # 如果路径以 '../' 开头，将其替换为 './'
+            if name.startswith('../'):
+                # 替换 '../' 为 './'
+                relative_path = './' + name[3:]  # 截取去掉 '../' 后的部分，添加 './' 前缀
+                #print("Converted relative path:", relative_path)
+            else:
+                pass
+                #print("No change in path:", name)
+
+            images.append(Image.open(relative_path))
+            #images.append(Image.open(name))
         
         #TODO: consider image padding in waymo
 

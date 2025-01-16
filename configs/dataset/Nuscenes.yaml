@@ -15,7 +15,7 @@ collect_meta_keys:  # send to DataContainer
   - camera2lidar
   - lidar2image
   - img_aug_matrix
-  # - lidar_aug_matrix  # this is useful when we change lidar and box
+  - lidar_aug_matrix  # this is useful when we change lidar and box
 collect_meta_lis_keys:  # hold by one DataContainer
   - timeofday
   - location

@@ -229,7 +229,7 @@ def main():
         dataset = torch.utils.data.Subset(dataset, validation_index)
     logger.info(f"Your validation index: {validation_index}")
     logger.info("Dataset contains %s samples.", len(dataset))
-
+    logger.info(f"{dataset=}")
     # == build dataloader ==
     dataloader_args = dict(
         dataset=dataset,
@@ -326,6 +326,32 @@ def main():
         total=num_steps_per_epoch,
     ) as pbar:
         for i, batch in pbar:
+            # # 打印 pixel_values_shape 的信息
+            # if "pixel_values_shape" in batch:
+            #     logger.info(f"pixel_values_shape: {batch['pixel_values_shape'].shape}")
+                
+            # # 打印 captions 的信息
+            # if "captions" in batch:
+            #     logger.info(f"Captions: {batch['captions']}")
+
+            # # 打印 bev_map_with_aux 的信息
+            # if "bev_map_with_aux" in batch:
+            #     logger.info(f"BEV map with auxiliary data shape: {batch['bev_map_with_aux'].shape}")
+
+            # # 打印 bboxes_3d_data 的信息
+            # if "bboxes_3d_data" in batch:
+            #     logger.info(f"Bboxes 3D data bbox shape: {len(batch['bboxes_3d_data'])}")
+            #     logger.info(f"Bboxes 3D data bbox shape: {batch['bboxes_3d_data'][0]['bboxes'].shape}")
+            #     logger.info(f"Bboxes 3D data classes shape: {batch['bboxes_3d_data'][0]['classes'].shape}")
+
+            # # 打印 camera_param 的信息
+            # if "camera_param" in batch:
+            #     logger.info(f"Camera parameters shape: {batch['camera_param'].shape}")
+
+            # # 打印 frame_emb 的信息
+            # if "frame_emb" in batch:
+            #     logger.info(f"Frame embeddings shape: {batch['frame_emb'].shape}")
+                
             if cfg.ignore_ori_imgs:
                 B, T, NC = 1, *batch["pixel_values_shape"][0].tolist()[:2]
                 latent_size = vae.get_latent_size(
@@ -351,6 +377,29 @@ def main():
             rel_pos = batch.pop("frame_emb").to(device, dtype)
             rel_pos = repeat(rel_pos, "B T ... -> (B NC) T 1 ...", NC=NC)  # BxNC, T, 1, 4, 4
 
+            
+            
+            logger.info(f"pixel_values_shape: {batch['pixel_values_shape'].shape}")
+            logger.info(f"pixel_values_shape: {batch['pixel_values_shape']}")
+            logger.info(f"Captions: {y}")
+            #logger.info(f"BEV map with auxiliary data shape: {batch['bev_map_with_aux'].shape}")
+            logger.info(f"BEV map with auxiliary data shape: {maps.shape}")
+            #logger.info(f"Bboxes 3D data bbox shape: {len(batch['bboxes_3d_data'])}")
+            #logger.info(f"Bboxes 3D data bbox shape: {bbox.keys()}")
+            for key, value in bbox.items():
+                logger.info(f"Key: {key}, Value: {value}")
+                if hasattr(value, 'shape'):
+                    logger.info(f"Shape of {key}: {value.shape}")
+                elif isinstance(value, torch.Tensor):
+                    size_info = value.shape if hasattr(value, 'shape') else value.size()
+                    logger.info(f"Size of {key}: {size_info}")
+                else:
+                    logger.info(f"{key} does not have a 'shape' attribute")
+            logger.info(f"Camera parameters shape: {cams.shape}")
+
+            logger.info(f"Frame embeddings shape: {rel_pos.shape}")
+            
+            
             # variable for inference
             batch_prompts = y
             # ms = mask_strategy[i : i + batch_size]

@@ -1317,6 +1317,7 @@ def MagicDriveSTDiT3_XL_2(from_pretrained=None, force_huggingface=False, **kwarg
         if from_pretrained is not None and force_huggingface:  # load from hf stdit3 model
             load_from_stdit3_pretrained(model, from_pretrained)
         elif from_pretrained is not None:
+            #load_checkpoint(model, from_pretrained, strict=True)
             load_checkpoint(model, from_pretrained, strict=True)
         elif from_pretrained_pixart is not None:
             load_from_pixart_pretrained(model, from_pretrained_pixart)

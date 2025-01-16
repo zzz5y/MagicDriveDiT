@@ -8,7 +8,7 @@ num_sample = 1
 
 batch_size = 1
 dtype = "bf16"
-
+#vae_tiling=384
 scheduler = dict(
     type="rflow",
     use_timestep_transform=True,
@@ -44,15 +44,16 @@ dataset_cfg_overrides = (
 
 # Runner
 dtype = "bf16"
-sp_size = 1
+
+sp_size = 2
 plugin = "zero2-seq" if sp_size > 1 else "zero2"
 grad_checkpoint = False
 # batch_size = 2
 drop_cond_ratio = 0.15
 
 # Acceleration settings
-num_workers = 4
-num_bucket_build_workers = 16
+num_workers = 1
+num_bucket_build_workers = 1
 
 # Model settings
 mv_order_map = {
@@ -74,7 +75,7 @@ vae_out_channels = 16
 
 model = dict(
     type="MagicDriveSTDiT3-XL/2",
-    # force_pad_h_for_sp_size=4,
+    force_pad_h_for_sp_size=4,
     qk_norm=True,
     pred_sigma=False,
     enable_flash_attn=True and global_flash_attn,
@@ -185,6 +186,7 @@ wandb = False
 epochs = 150
 log_every = 1
 ckpt_every = 500 * 5
+sp_size = 2
 
 # optimization settings
 load = None
