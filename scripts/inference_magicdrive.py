@@ -376,8 +376,6 @@ def main():
             cams = rearrange(cams, "B T NC ... -> (B NC) T 1 ...")  # BxNC, T, 1, 3, 7
             rel_pos = batch.pop("frame_emb").to(device, dtype)
             rel_pos = repeat(rel_pos, "B T ... -> (B NC) T 1 ...", NC=NC)  # BxNC, T, 1, 4, 4
-
-            
             
             logger.info(f"pixel_values_shape: {batch['pixel_values_shape'].shape}")
             logger.info(f"pixel_values_shape: {batch['pixel_values_shape']}")

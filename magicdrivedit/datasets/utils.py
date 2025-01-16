@@ -13,7 +13,7 @@ from PIL import Image
 from torchvision.datasets.folder import IMG_EXTENSIONS, pil_loader
 from torchvision.io import write_video
 from torchvision.utils import save_image
-
+import uuid
 from ..mmdet_plugin.core.bbox import LiDARInstance3DBoxes
 
 IMG_FPS = 120
@@ -108,6 +108,141 @@ def save_sample(x, save_path=None, fps=8, normalize=True, value_range=(-1, 1), f
         print(f"Saved to {save_path}")
     return save_path
 
+# def save_sample_inf(x, save_path=None, fps=8, normalize=True, value_range=(-1, 1), 
+#                     force_video=False, high_quality=False, verbose=True, 
+#                     with_postfix=True, force_image=False, save_per_n_frame=-1):
+#     """
+#     Save a tensor as an image or video, with optional UUID suffix if file exists.
+    
+#     Args:
+#         x (Tensor): shape [C, T, H, W]
+#     """
+#     assert x.ndim == 4, f"Input dim is {x.ndim}/{x.shape}"
+#     x = x.to("cpu")
+    
+#     # Add postfix if specified
+#     if with_postfix:
+#         save_path += f"_{x.shape[-2]}x{x.shape[-1]}"
+    
+#     # Check if file exists and add a UUID suffix if necessary
+#     if os.path.exists(save_path):
+#         file_root, file_ext = os.path.splitext(save_path)
+#         save_path = f"{file_root}_{uuid.uuid4().hex}{file_ext}"
+    
+#     if not force_video and x.shape[1] == 1:  # T = 1: save as image
+#         if not is_img(save_path):
+#             save_path += ".png"
+#         x = x.squeeze(1)
+#         save_image([x], save_path, normalize=normalize, value_range=value_range)
+#     else:
+#         if with_postfix:
+#             save_path += f"_f{x.shape[1]}_fps{fps}.mp4"
+#         elif not is_vid(save_path):
+#             save_path += ".mp4"
+#         if normalize:
+#             low, high = value_range
+#             x.clamp_(min=low, max=high)
+#             x.sub_(low).div_(max(high - low, 1e-5))
+
+#         x = x.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 3, 0).to(torch.uint8)
+#         imgList = [xi for xi in x.numpy()]
+#         if force_image:
+#             os.makedirs(save_path, exist_ok=True)
+#             for xi, _x in enumerate(imgList):
+#                 _save_path = os.path.join(save_path, f"f{xi:05d}.png")
+#                 Image.fromarray(_x).save(_save_path)
+#         elif high_quality:
+#             from moviepy.editor import ImageSequenceClip
+#             if save_per_n_frame > 0 and len(imgList) > save_per_n_frame:
+#                 single_value = len(imgList) % 2
+#                 for i in range(0, len(imgList) - single_value, save_per_n_frame):
+#                     if i == 0:
+#                         _save_path = f"_f0-{save_per_n_frame + 1}".join(os.path.splitext(save_path))
+#                         vid_len = save_per_n_frame + single_value
+#                     else:
+#                         vid_len = save_per_n_frame
+#                         _save_path = f"_f{i + 1}-{i + 1 + vid_len}".join(os.path.splitext(save_path))
+#                         i += single_value
+#                     if len(imgList[i:i+vid_len]) < vid_len:
+#                         logging.warning(f"{len(imgList)} will stop at frame {i}.")
+#                         break
+#                     clip = ImageSequenceClip(imgList[i:i+vid_len], fps=fps)
+#                     clip.write_videofile(
+#                         _save_path, verbose=verbose, bitrate="4M",
+#                         logger='bar' if verbose else None)
+#                     clip.close()
+#             else:
+#                 clip = ImageSequenceClip(imgList, fps=fps)
+#                 clip.write_videofile(
+#                     save_path, verbose=verbose, bitrate="4M",
+#                     logger='bar' if verbose else None)
+#                 clip.close()
+#         else:
+#             write_video(save_path, x, fps=fps, video_codec="h264")
+#     if verbose:
+#         print(f"Saved to {save_path}")
+#     return save_path
+def save_sample_inf(x, save_path=None, fps=8, normalize=True, value_range=(-1, 1), 
+                    force_video=False, high_quality=False, verbose=True, 
+                    with_postfix=True, force_image=False, save_per_n_frame=-1):
+    """
+    Save a tensor as an image or video, with unique UUIDs for each image.
+    
+    Args:
+        x (Tensor): shape [C, T, H, W]
+    """
+    assert x.ndim == 4, f"Input dim is {x.ndim}/{x.shape}"
+    x = x.to("cpu")
+    
+    # Add postfix if specified
+    if with_postfix:
+        save_path += f"_{x.shape[-2]}x{x.shape[-1]}"
+    
+    if not force_video and x.shape[1] == 1:  # T = 1: save as image
+        if not is_img(save_path):
+            save_path += ".png"
+        x = x.squeeze(1)
+        # Check if file exists and generate a UUID
+        if os.path.exists(save_path):
+            file_root, file_ext = os.path.splitext(save_path)
+            uuid_suffix = uuid.uuid4().hex
+            save_path = f"{file_root}_{uuid_suffix}{file_ext}"
+            if verbose:
+                print(f"Generated UUID for image: {uuid_suffix}")
+        save_image([x], save_path, normalize=normalize, value_range=value_range)
+    else:
+        if with_postfix:
+            save_path += f"_f{x.shape[1]}_fps{fps}.mp4"
+        elif not is_vid(save_path):
+            save_path += ".mp4"
+        if normalize:
+            low, high = value_range
+            x.clamp_(min=low, max=high)
+            x.sub_(low).div_(max(high - low, 1e-5))
+
+        x = x.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 3, 0).to(torch.uint8)
+        imgList = [xi for xi in x.numpy()]
+        if force_image:
+            os.makedirs(save_path, exist_ok=True)
+            for xi, _x in enumerate(imgList):
+                # Generate a UUID for each image
+                uuid_suffix = uuid.uuid4().hex
+                _save_path = os.path.join(save_path, f"f{xi:05d}_{uuid_suffix}.png")
+                Image.fromarray(_x).save(_save_path)
+                if verbose:
+                    print(f"Saved image with UUID: {uuid_suffix}")
+        elif high_quality:
+            from moviepy.editor import ImageSequenceClip
+            clip = ImageSequenceClip(imgList, fps=fps)
+            clip.write_videofile(
+                save_path, verbose=verbose, bitrate="4M",
+                logger='bar' if verbose else None)
+            clip.close()
+        else:
+            write_video(save_path, x, fps=fps, video_codec="h264")
+    if verbose:
+        print(f"Saved to {save_path}")
+    return save_path
 
 def unsqueeze_tensors_in_dict(in_dict: Dict[str, Any], dim) -> Dict[str, Any]:
     out_dict = {}
